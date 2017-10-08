@@ -14,7 +14,7 @@
           </ul>
           <ul class = "nav navbar-nav navbar-right">
             
-              <ul class = "nav navbar-nav" *ngIf = "!authServce.isAuthenticated()">
+              <ul class = "nav navbar-nav" *ngIf = "!(authenticated | async)">
                   <li routerLinkActive = "active">
                     <a routerLink = '/signUp'>Register</a>
                   </li>
@@ -22,8 +22,8 @@
                     <a routerLink = '/signIn'>Log In</a>
                   </li>
               </ul>
-              <ng-template [ngIf] = "authServce.isAuthenticated()">
-                  <ul class = "nav navbar-nav" *ngIf = "authServce.isAuthenticated()">
+              <ng-template [ngIf] = "(authenticated | async)">
+                  <ul class = "nav navbar-nav" *ngIf = "(authenticated | async)">
                       <li>
                         <a (click) = "logOut()">Log Out</a>
                       </li>

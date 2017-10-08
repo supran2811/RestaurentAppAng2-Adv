@@ -1,3 +1,7 @@
+import { EffectsModule } from '@ngrx/effects';
+import { AuthReducer } from '../auth/store/auth.reducer';
+import { recipeReducer } from './store/recipe.reducer';
+import { StoreModule } from '@ngrx/store';
 import { RecipeRouterModule } from './recipe-router.module';
 import { SharedModule } from './../modules/shared.module';
 import { CommonModule } from '@angular/common';
@@ -7,6 +11,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { NgModule } from '@angular/core';
 
 
+import { RecipeEffects } from './store/recipe.effects';
 import { RecipeListComponent } from './recipe-list/recipe-list.component';
 import { RecipeItemComponent } from './recipe-list/recipe-item/recipe-item.component';
 import { RecipeComponent } from './recipe.component';
@@ -26,7 +31,9 @@ import { RecipeEditComponent } from './recipe-edit/recipe-edit.component';
     imports:[
         SharedModule,
         ReactiveFormsModule ,
-        RecipeRouterModule 
+        RecipeRouterModule,
+        StoreModule.forFeature('recipes',recipeReducer),
+        EffectsModule.forFeature([RecipeEffects])
     ]
 })
 export class RecipeModule{}

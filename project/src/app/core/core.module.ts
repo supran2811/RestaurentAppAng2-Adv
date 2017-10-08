@@ -5,9 +5,9 @@ import { HomeComponent } from './home/home.component';
 import { AppRouterModule } from './../modules/app-router.module';
 import { SharedModule } from './../modules/shared.module';
 import { HttpService } from '../services/http-service.service';
-import { AuthService } from '../services/auth-service.service';
-import { RecipeListService } from '../services/recipe-list.service';
-import {ShoppingListService} from '../services/shoppint-list.service';
+
+
+
 
 @NgModule({
   declarations:[
@@ -25,10 +25,7 @@ import {ShoppingListService} from '../services/shoppint-list.service';
     HomeComponent,
     AppRouterModule
   ],
-  providers :[ShoppingListService,
-              RecipeListService , 
-              HttpService , 
-              AuthService]
+  providers :[HttpService]
 })
 export class CoreModule{
 

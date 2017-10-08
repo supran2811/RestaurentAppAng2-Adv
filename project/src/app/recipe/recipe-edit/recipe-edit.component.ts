@@ -1,11 +1,14 @@
+
+import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Rx';
-import { CanComponentDeactivate } from './../../services/auth-guard-deactivate.service';
-import { Recipe } from './../../model/recipe.model';
-import { RecipeListService } from '../../services/recipe-list.service';
-import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { Component, OnInit } from '@angular/core';
+import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 
+import { CanComponentDeactivate } from './../../services/auth-guard-deactivate.service';
+import { Recipe } from './../../model/recipe.model';
+import * as fromRecipe from '../store/recipe.reducer';
+import * as RecipeActions from '../store/recipe.action';
 @Component({
   selector: 'app-recipe-edit',
   templateUrl: './recipe-edit.component.html',
@@ -21,8 +24,8 @@ export class RecipeEditComponent implements OnInit ,CanComponentDeactivate{
   ingredientList:FormArray;
 
   constructor(private route:ActivatedRoute 
-                  , private recipeListService : RecipeListService
-                  , private router:Router) {
+                  , private router:Router,
+                   private store:Store<fromRecipe.FeatureState>) {
       
    }
 
@@ -32,6 +35,7 @@ export class RecipeEditComponent implements OnInit ,CanComponentDeactivate{
       (params:Params) => {
           this.id = params['id'];
           this.editMode = params['id'] != null;
+
           this.initForm();
       }
     );
@@ -39,31 +43,43 @@ export class RecipeEditComponent implements OnInit ,CanComponentDeactivate{
 
 
   initForm(){
-    const recipe = this.recipeListService.getRecipe(this.id);
-    
+
     let name = "";
     let imageUrl = "";
     let description = "";
     this.ingredientList = new FormArray([])
-    if(recipe != null){
-         name = recipe.name;
-         imageUrl = recipe.imagePath;
-         description = recipe.description;
-         for(let i=0;i<recipe.ingredients.length;i++){
-          this.ingredientList.push( new FormGroup({
-                     name : new FormControl(recipe.ingredients[i].name ,Validators.required),
-                     amount : new FormControl(recipe.ingredients[i].amount,
-                             [Validators.required ,Validators.pattern(/[1-9]+[0-9]*$/)])
-              }) );
-         }
-    }
     
-    this.recipeForm = new FormGroup({
-          name : new FormControl(name , Validators.required),
-          imageUrl : new FormControl(imageUrl,Validators.required),
-          description : new FormControl(description,Validators.required),
-          ingredients: this.ingredientList
-    });
+    if(this.editMode == true){
+        this.store.select('recipes').take(1).subscribe((data:fromRecipe.State) =>{
+          
+          const recipe = data.recipes[this.id];
+
+          name = recipe.name;
+          imageUrl = recipe.imagePath;
+          description = recipe.description;
+          for(let i=0;i<recipe.ingredients.length;i++){
+           this.ingredientList.push( new FormGroup({
+                      name : new FormControl(recipe.ingredients[i].name ,Validators.required),
+                      amount : new FormControl(recipe.ingredients[i].amount,
+                              [Validators.required ,Validators.pattern(/[1-9]+[0-9]*$/)])
+               }) );
+          }
+          this.recipeForm = new FormGroup({
+              name : new FormControl(name , Validators.required),
+              imageUrl : new FormControl(imageUrl,Validators.required),
+              description : new FormControl(description,Validators.required),
+              ingredients: this.ingredientList
+          });
+        });
+    }
+    else {
+      this.recipeForm = new FormGroup({
+            name : new FormControl(name , Validators.required),
+            imageUrl : new FormControl(imageUrl,Validators.required),
+            description : new FormControl(description,Validators.required),
+            ingredients: this.ingredientList
+      });
+   }
   }
   
  
@@ -85,10 +101,11 @@ export class RecipeEditComponent implements OnInit ,CanComponentDeactivate{
                                 , this.recipeForm.value.ingredients);
 
     if(this.editMode == true){
-       this.recipeListService.updateRecipe(this.id , newRecipe); 
+     const index = this.id;
+     this.store.dispatch(new RecipeActions.UpdateRecipeAction({index , newRecipe}));
     }
     else{
-       this.recipeListService.addRecipe(newRecipe); 
+      this.store.dispatch(new RecipeActions.AddRecipeAction(newRecipe));
     }
     this.router.navigate(['../'],{relativeTo:this.route});
   }
@@ -102,25 +119,33 @@ export class RecipeEditComponent implements OnInit ,CanComponentDeactivate{
   }
 
   canDeactivate() : Observable<boolean> | Promise<boolean> | boolean{
-    const recipe = this.recipeListService.getRecipe(this.id);
+    
 
     if(this.changesSaved == false){
-    if(recipe != null){
-         
-        if(recipe.name != this.recipeForm.value.name ||
-                recipe.description != this.recipeForm.value.description ||
-                   recipe.imagePath != this.recipeForm.value.imageUrl){
-                    return confirm("Do you want to save your changes?");
-                   }
-    }
-     else{
-        if(this.recipeForm.valid){
-          return confirm("Do you want to save your changes?");
+        if(this.editMode == true){
+          this.store.select('recipes').take(1).subscribe((data:fromRecipe.State) => {
+            const recipe = data.recipes[this.id];
+            if(recipe.name != this.recipeForm.value.name ||
+                    recipe.description != this.recipeForm.value.description ||
+                      recipe.imagePath != this.recipeForm.value.imageUrl){
+                        return confirm("Do you want to save your changes?");
+            }
+            
+            
+          })
         }
-     }
+        else{
+            if(this.recipeForm.valid){
+              return confirm("Do you want to save your changes?");
+            }
+            
+        }
     }
-
-     return true;
+    //else
+    {
+      console.log("Coming here");
+      return true;
+    }
   }
 
 }

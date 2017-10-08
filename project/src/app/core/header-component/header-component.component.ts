@@ -1,7 +1,15 @@
-import { AuthService } from '../../services/auth-service.service';
+
+import { Observable } from 'rxjs/Rx';
 import { Router } from '@angular/router';
-import { RecipeListService } from '../../services/recipe-list.service';
 import { Component, OnInit, EventEmitter, Output } from '@angular/core';
+import {Store} from '@ngrx/store';
+
+
+import * as fromAuthData from '../../auth/store/auth.reducer';
+import * as fromAppState from '../../store/app.reducer';
+import * as AuthActions from '../../auth/store/auth.action';
+import * as fromRecipe from '../../recipe/store/recipe.reducer';
+import * as RecipeActions from '../../recipe/store/recipe.action';
 
 @Component({
   selector: 'app-header-component',
@@ -10,36 +18,29 @@ import { Component, OnInit, EventEmitter, Output } from '@angular/core';
 })
 export class HeaderComponentComponent implements OnInit {
   
-  // @Output() featureSelected = new EventEmitter<string>(); 
   
-
-  constructor(private recipeListService:RecipeListService , 
-                  private router:Router,
-                  public  authServce:AuthService) { }
+  authenticated : Observable<boolean>;
+  
+  constructor( private router:Router,
+                  public store:Store<fromRecipe.FeatureState>) { }
 
   ngOnInit() {
+    this.authenticated = this.store.select('auth').map((authState:fromAuthData.State) => {
+        return authState.authorised;
+    });
+   
   }
   
   onSave(){
-    this.recipeListService.save();
+    this.store.dispatch(new RecipeActions.StoreRecipeAction());
   }
 
   onFetch(){
-    this.recipeListService.sync();
-    this.router.navigate(["recipes"]);
+    this.store.dispatch(new RecipeActions.FetchRecipeAction());
   }
 
   logOut(){
-    this.authServce.signOut().then(
-      () => this.router.navigate(['signIn'])
-    )
-    .catch(
-      error => console.log(error)
-    );
-    
+    this.store.dispatch(new AuthActions.SignOutAction());
   }
-  // onSelect(feature:string){
-  //    this.featureSelected.emit(feature);
-  // }
-
+  
 }

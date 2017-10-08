@@ -8,7 +8,7 @@
        <a (click) = "onIngredientSelected(i)" 
           class="list-group-item"
           [@list1]
-          *ngFor = "let ingredient of ingredients ; let i = index"
+          *ngFor = "let ingredient of (shoppingListData | async).ingredients ; let i = index"
           >
          {{ ingredient.name }} ({{ ingredient.amount }})
      </a>
