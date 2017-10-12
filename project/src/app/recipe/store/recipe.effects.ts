@@ -1,3 +1,4 @@
+import { HttpEvent } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Actions, Effect } from '@ngrx/effects';
 import { Injectable } from '@angular/core';
@@ -14,7 +15,7 @@ export class RecipeEffects{
 
     @Effect() fetchRecipes = this.actions$.ofType(RecipeActions.FETCH_RECIPE)
                                         .switchMap(() => {
-                                            return  this.httpService.get(this.URL);
+                                            return  this.httpService.get<Recipe[]>(this.URL);
                                         })
                                         .map((recipes:Recipe[]) =>{
                                             this.router.navigate(["recipes"]);    
@@ -29,7 +30,7 @@ export class RecipeEffects{
                                                         console.log("saving...");
                                                         console.log(state.recipes);
                                                         this.httpService.save(this.URL , state.recipes).subscribe(
-                                                            (response) => {console.log(response)},
+                                                            (response:HttpEvent<Object>) => {console.log(response)},
                                                             (error:Response) => {console.log(error)}
                                                          )
                                                     })

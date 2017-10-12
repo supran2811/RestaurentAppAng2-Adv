@@ -1,5 +1,6 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Store } from '@ngrx/store';
-import { Http, Response } from '@angular/http';
+
 import { Injectable } from '@angular/core';
 import 'rxjs/Rx';
 
@@ -9,29 +10,23 @@ import * as fromAuthState from '../auth/store/auth.reducer';
 @Injectable()
 export class HttpService{
     
-    constructor(private http:Http,
+    constructor(private http:HttpClient,
                     private store:Store<fromApp.AppState>){}
     
   
 
     save(url:string , data:any[]){
-        //const token = this.authService.getToken();
-        return this.store.select('auth')
-            .take(1).switchMap((authState : fromAuthState.State)=>{
-               return this.http.put(url+"?auth="+authState.token , data); 
-        })
+    
+        return this.http.put(url, data
+               ,{observe:"events"}); 
     }
 
-    get(url:string){
+    get<T>(url:string){
        // const token = this.authService.getToken();
-       return this.store.select('auth').take(1).switchMap((authState:fromAuthState.State)=>{
-           console.log(authState);
-         return this.http.get(url+"?auth="+authState.token).map(
-            (response:Response) => {
-                const data  = response.json();
-                return data;
+         return this.http.get<T>(url).map(
+            (data) => {
+               return data;
             }
-         )    
-       });
+         );
     }
 }
