@@ -24,7 +24,7 @@ import { ShoppingListComponent } from './shopping-list/shopping-list.component';
     AppComponent   
   ],
   imports: [
-    BrowserModule,
+    BrowserModule.withServerTransition({appId:"my-recipe-universal-app"}),
     BrowserAnimationsModule,
     HttpClientModule,    
     ShoppingListModule,
